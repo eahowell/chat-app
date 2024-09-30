@@ -104,7 +104,7 @@ const Start = ({ navigation }) => {
             accessibilityHint="Lets you enter the chat room"
             onPress={() => navigation.navigate("Chat", {
               name: name,
-              backgroundColor: selectedBackgroundColor,
+              chatBackgroundColor: selectedBackgroundColor,
             })}
           >
             <Text style={styles.buttonStartChatText}>Start Chatting</Text>
