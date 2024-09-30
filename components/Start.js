@@ -8,6 +8,7 @@ import {
   SafeAreaView,
   Platform,
   Dimensions,
+  KeyboardAvoidingView,
 } from "react-native";
 import { SvgXml } from "react-native-svg";
 import { useState } from "react";
@@ -53,6 +54,10 @@ const Start = ({ navigation }) => {
     <SafeAreaView style={styles.container}>
       <ImageBackground source={image} resizeMode="cover" style={styles.image}>
         <Text style={styles.title}>Chatly</Text>
+        <KeyboardAvoidingView 
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={styles.keyboardAvoidingView}
+        ></KeyboardAvoidingView>
         <View style={styles.loginContainer}>
           <View style={styles.inputContainer}>
             {/* Using platform to so the svg can be rendered properly based on bed vs mobile */}
