@@ -12,13 +12,6 @@ const Chat = ({ route, navigation }) => {
   const { name, chatBackgroundColor } = route.params;
   const [messages, setMessages] = useState([]);
 
-  // const {chatBackgroundColor, setChatBackgroundColor} = useState(backgroundColor);
-  // const chatBackgroundColor = backgroundColor;
-
-  // useEffect(() => {
-  //   setChatBackgroundColor(backgroundColor);
-  // }, [backgroundColor]);
-
   useEffect(() => {
     navigation.setOptions({ title: name });
     setMessages([
@@ -60,6 +53,8 @@ const Chat = ({ route, navigation }) => {
             backgroundColor: "#FFF",
           },
         }}
+        accessibilityLabel={`Message from ${props.currentMessage.user.name}: ${props.currentMessage.text}`}
+        accessibilityRole="text"
       />
     );
   };

@@ -12,11 +12,12 @@ import {
 } from "react-native";
 import { SvgXml } from "react-native-svg";
 import { useState } from "react";
+import OutlinedText from "@kdn0325/react-native-outlined-text";
 
 const image = require("../assets/background-image.png");
 
 // Get the window dimensions so that the design spec percentages can be calculated
-const { height, width } = Dimensions.get('window');
+const { height, width } = Dimensions.get("window");
 
 // Define the SVG as a string so it can be rendered
 const personIconSvg = `
@@ -45,53 +46,98 @@ const personIconSvg = `
 
 const Start = ({ navigation }) => {
   const [name, setName] = useState("");
-  const [selectedBackgroundColor, setSelectedBackgroundColor] =
-    useState("#090C08");
-
-  const backgroundColorChoices = ["#090C08", "#474056", "#8A95A5", "#B9C6AE"];
 
   return (
     <SafeAreaView style={styles.container}>
-      <ImageBackground source={image} resizeMode="cover" style={styles.image}>
-        <Text style={styles.title}>Chatly</Text>
-        <KeyboardAvoidingView 
+      <ImageBackground
+        source={image}
+        resizeMode="cover"
+        style={styles.image}
+        accessibilityRole="image"
+        accessibilityLabel="Chat app background image of two people chatting and laughing"
+      >
+        <View style={styles.titleContainer}>
+          <OutlinedText
+            text={"Chatly"}
+            style={styles.title}
+            fontSize={45}
+            fontWeight={"600"}
+            fontColor={"#FFFFFF"}
+            outlineColor="#090C08"
+            shadowLine={5}
+            accessibilityRole="header"
+          />
+        </View>
+        <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={styles.keyboardAvoidingView}
         ></KeyboardAvoidingView>
         <View style={styles.loginContainer}>
           <View style={styles.inputContainer}>
             {/* Using platform to so the svg can be rendered properly based on bed vs mobile */}
-            {Platform.OS === 'web' 
-              ? <img src={`data:image/svg+xml;utf8,${encodeURIComponent(personIconSvg)}`} alt="Person Icon" style={styles.inputIcon} />
-              : <SvgXml xml={personIconSvg} width={20} height={20} style={styles.inputIcon} />
-            }
+            {Platform.OS === "web" ? (
+              <img
+                src={`data:image/svg+xml;utf8,${encodeURIComponent(
+                  personIconSvg
+                )}`}
+                alt="Person Icon"
+                style={styles.inputIcon}
+                accessibilityLabel="Person icon"
+              />
+            ) : (
+              <SvgXml
+                xml={personIconSvg}
+                width={20}
+                height={20}
+                style={styles.inputIcon}
+              />
+            )}
             <TextInput
-            // Styles the color of the text input based on if it's the placeholder or active text to help with readability
+              // Styles the color of the text input based on if it's the placeholder or active text to help with readability
               style={[styles.textInput, name ? styles.textInputActive : null]}
               value={name}
-              role="textbox"
-              accessibilityHint="Lets you type your name"
               onChangeText={setName}
               placeholder="Your Name"
+              accessibilityLabel="Name input"
+              accessibilityHint="Enter your name"
+              accessible={true}
+              accessibilityRole="text"
+              accessibilityState={{ expanded: true }}
+              // For Android
+              contentDescription="Enter your name"
+              importantForAccessibility="yes"
             />
           </View>
           <View style={styles.colorChoiceSection}>
-            <Text style={styles.backgroundChoiceText}>
+            <Text
+              style={styles.backgroundChoiceText}
+              accessibilityRole="header"
+            >
               Choose Background Color
             </Text>
-            <View style={styles.backgroundChoiceContainer}>
-              {backgroundColorChoices.map((color) => (
+            <View
+              style={styles.backgroundChoiceContainer}
+              accessibilityRole="radiogroup"
+            >
+              {backgroundColorChoices.map((color, index) => (
                 <View key={color} style={styles.colorButtonWrapper}>
-                  {/* Used Pressable because  TouchableOpacity is deprecated*/}
                   <Pressable
                     accessible={true}
-                    role="button"
-                    accessibilityHint={`Lets you choose ${color} as the background color for the chat room`}
-                    style={[styles.backgroundChoiceButtons, { backgroundColor: color }]}
+                    accessibilityRole="radio"
+                    accessibilityLabel={`${backgroundColorChoicesDescriptions[index]} background color`}
+                    accessibilityState={{
+                      checked: selectedBackgroundColor === color,
+                    }}
+                    style={[
+                      styles.backgroundChoiceButtons,
+                      { backgroundColor: color },
+                    ]}
                     onPress={() => setSelectedBackgroundColor(color)}
                   />
                   {selectedBackgroundColor === color && (
-                    <View style={[styles.selectedRing, { borderColor: color }]} />
+                    <View
+                      style={[styles.selectedRing, { borderColor: color }]}
+                    />
                   )}
                 </View>
               ))}
@@ -99,13 +145,15 @@ const Start = ({ navigation }) => {
           </View>
           <Pressable
             style={styles.buttonStartChat}
-            accessible={true}
-            role="button"
-            accessibilityHint="Lets you enter the chat room"
-            onPress={() => navigation.navigate("Chat", {
-              name: name,
-              chatBackgroundColor: selectedBackgroundColor,
-            })}
+            accessibilityRole="button"
+            accessibilityLabel="Start Chatting"
+            accessibilityHint="Enter the chat room with your chosen name and background color"
+            onPress={() =>
+              navigation.navigate("Chat", {
+                name: name,
+                chatBackgroundColor: selectedBackgroundColor,
+              })
+            }
           >
             <Text style={styles.buttonStartChatText}>Start Chatting</Text>
           </Pressable>
@@ -122,15 +170,12 @@ const styles = StyleSheet.create({
   image: {
     flex: 1,
     justifyContent: "center",
-    alignItems: "center",    
+    alignItems: "center",
     height: "100%",
     width: "100%",
   },
-  title: {
+  titleContainer: {
     flex: 1,
-    fontSize: 45,
-    fontWeight: "600",
-    color: "#FFFFFF",
     margin: 80,
   },
   loginContainer: {
@@ -191,15 +236,15 @@ const styles = StyleSheet.create({
     marginHorizontal: 3,
   },
   backgroundChoiceButtons: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
   },
   selectedRing: {
     position: "absolute",
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: 58,
+    height: 58,
+    borderRadius: 29,
     borderWidth: 2,
   },
   buttonStartChat: {
@@ -212,6 +257,7 @@ const styles = StyleSheet.create({
   },
   buttonStartChatText: {
     fontSize: 16,
+    // height: 50,
     fontWeight: "600",
     color: "#FFFFFF",
   },

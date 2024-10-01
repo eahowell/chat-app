@@ -254,3 +254,4 @@ npm test -- --coverage --watchAll
 
 
 ## License
+MIT
