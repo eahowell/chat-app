@@ -13,6 +13,7 @@ import {
 import { SvgXml } from "react-native-svg";
 import { useState } from "react";
 import OutlinedText from "@kdn0325/react-native-outlined-text";
+import colorMatrix from "../colorMatrix";
 
 const image = require("../assets/background-image.png");
 
@@ -46,6 +47,9 @@ const personIconSvg = `
 
 const Start = ({ navigation }) => {
   const [name, setName] = useState("");
+  const [selectedBackgroundColor, setSelectedBackgroundColor] = useState(
+    colorMatrix[0].backgroundColor
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -135,10 +139,37 @@ const Start = ({ navigation }) => {
                     onPress={() => setSelectedBackgroundColor(color)}
                   />
                   {selectedBackgroundColor === color && (
+                  {colorMatrix.map((color, index) => (
                     <View
-                      style={[styles.selectedRing, { borderColor: color }]}
-                    />
-                  )}
+                      key={color.backgroundColor}
+                      style={styles.colorButtonWrapper}
+                    >
+                      <Pressable
+                        accessible={true}
+                        accessibilityRole="radio"
+                        accessibilityLabel={`${color.backgroundColorDescription} background color`}
+                        accessibilityState={{
+                          checked:
+                            selectedBackgroundColor === color.backgroundColor,
+                        }}
+                        style={[
+                          styles.backgroundChoiceButtons,
+                          { backgroundColor: color.backgroundColor },
+                        ]}
+                        onPress={() =>
+                          setSelectedBackgroundColor(color.backgroundColor)
+                        }
+                      />
+                      {selectedBackgroundColor === color.backgroundColor && (
+                        <View
+                          style={[
+                            styles.selectedRing,
+                            { borderColor: color.backgroundColor },
+                          ]}
+                        />
+                      )}
+                    </View>
+                  ))}
                 </View>
               ))}
             </View>

@@ -7,10 +7,15 @@ import {
 } from "react-native";
 import { useEffect, useState } from "react";
 import { Bubble, GiftedChat } from "react-native-gifted-chat";
+import colorMatrix from "../colorMatrix";
 
 const Chat = ({ route, navigation }) => {
   const { name, chatBackgroundColor } = route.params;
   const [messages, setMessages] = useState([]);
+
+  const selectedColorScheme = colorMatrix.find(
+    (color) => color.backgroundColor === chatBackgroundColor
+  );
 
   useEffect(() => {
     navigation.setOptions({ title: name });
@@ -46,11 +51,23 @@ const Chat = ({ route, navigation }) => {
         {...props}
         wrapperStyle={{
           right: {
-            backgroundColor:
-              chatBackgroundColor === "#090C08" ? "#474056" : "#090C08",
+            backgroundColor: selectedColorScheme.bubbleColor,
           },
           left: {
             backgroundColor: "#FFF",
+          },
+        }}
+        textStyle={{
+          right: {
+            color: selectedColorScheme.bubbleColorText,
+          },
+        }}
+        timeTextStyle={{
+          right: {
+            color: selectedColorScheme.bubbleColorText,
+          },
+          left: {
+            color: "Black",
           },
         }}
         accessibilityLabel={`Message from ${props.currentMessage.user.name}: ${props.currentMessage.text}`}
