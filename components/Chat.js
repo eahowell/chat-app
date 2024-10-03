@@ -3,10 +3,14 @@ import {
   Platform,
   KeyboardAvoidingView,
   SafeAreaView,
-  View,
 } from "react-native";
 import { useEffect, useState } from "react";
-import { Bubble, GiftedChat } from "react-native-gifted-chat";
+import {
+  Bubble,
+  GiftedChat,
+  SystemMessage,
+  Day,
+} from "react-native-gifted-chat";
 import colorMatrix from "../colorMatrix";
 
 const Chat = ({ route, navigation }) => {
@@ -76,6 +80,24 @@ const Chat = ({ route, navigation }) => {
     );
   };
 
+  const renderSystemMessage = (props) => (
+    <SystemMessage
+      {...props}
+      textStyle={{
+        color: selectedColorScheme.systemMessageTextColor,
+      }}
+    />
+  );
+
+  const renderDay = (props) => (
+    <Day
+      {...props}
+      textStyle={{
+        color: selectedColorScheme.systemMessageTextColor,
+      }}
+    />
+  );
+
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: chatBackgroundColor }]}
@@ -86,10 +108,20 @@ const Chat = ({ route, navigation }) => {
       ></KeyboardAvoidingView>
       <GiftedChat
         messages={messages}
-        renderBubble={renderBubble}
         onSend={(messages) => onSend(messages)}
-        user={{
-          _id: 1,
+        user={{ _id: 1 }}
+        renderBubble={renderBubble}
+        renderSystemMessage={renderSystemMessage}
+        renderDay={renderDay}
+        maxComposerHeight={100}
+        minComposerHeight={Platform.OS === "ios" ? 40 : 60}
+        textInputProps={{
+          importantForAccessibility: "yes",
+          accessible: true,
+          accessibilityRole: "text",
+          accessibilityHint: "Type your message here",
+          accessibilityLabel:null,
+          multiline: true,
         }}
       />
     </SafeAreaView>
