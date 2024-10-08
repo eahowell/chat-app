@@ -13,6 +13,7 @@ import {
   SystemMessage,
   Day,
   Message,
+  InputToolbar,
 } from "react-native-gifted-chat";
 import colorMatrix from "../colorMatrix";
 import {
@@ -22,9 +23,10 @@ import {
   query,
   orderBy,
 } from "firebase/firestore";
-import  DatabaseContext  from "../DatabaseContext";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import DatabaseContext from "../DatabaseContext";
 
-const Chat = ({ route, navigation }) => {
+const Chat = ({ route, navigation, isConnected }) => {
   const { name, chatBackgroundColor, userID } = route.params;
   const [messages, setMessages] = useState([]);
   const { db } = useContext(DatabaseContext);
@@ -33,27 +35,43 @@ const Chat = ({ route, navigation }) => {
     (color) => color.backgroundColor === chatBackgroundColor
   );
 
+  const loadCachedLists = async (listToCache) => {
+    try {
+      await AsyncStorage.setItem("messages", JSON.stringify(listToCache));
+    } catch (error) { 
+      console.error("Error loading messages from cache:", error.code, error.message);
+    }
+  };
+  let unsubMessages;
   useEffect(() => {
     navigation.setOptions({ title: name });
 
-    const q = query(collection(db, "messages"), orderBy("createdAt", "desc"));
-    const unsubMessages = onSnapshot(q, (querySnapshot) => {
-      let newMessages = [];
-      querySnapshot.forEach((doc) => {
-        newMessages.push({
-          _id: doc.id,
-          text: doc.data().text,
-          createdAt: doc.data().createdAt.toDate(),
-          user: doc.data().user,
+    if (isConnected === true) {
+      // Unregister current onSnapshot() listener to avoid registering multiple listeners when the connection is re-established
+      if (unsubMessages) unsubMessages();
+      unsubMessages = null;
+      
+      const q = query(collection(db, "messages"), orderBy("createdAt", "desc"));
+      unsubMessages = onSnapshot(q, async (querySnapshot) => {
+        let newMessages = [];
+        querySnapshot.forEach((doc) => {
+          newMessages.push({
+            _id: doc.id,
+            text: doc.data().text,
+            createdAt: doc.data().createdAt.toDate(),
+            user: doc.data().user,
+          });
         });
+        loadCachedLists(newMessages);
+        setMessages(newMessages);
       });
-      setMessages(newMessages);
-    });
-    // Clean upd
+    } else loadCachedLists();
+    
+    // Clean up the listener
     return () => {
       if (unsubMessages) unsubMessages();
     };
-  }, []);
+  }, [isConnected]);
 
   const renderBubble = (props) => {
     return (
@@ -107,8 +125,13 @@ const Chat = ({ route, navigation }) => {
   const renderMessage = (props) => {
     return (
       <View>
-        {props.position === 'left' && (
-          <Text style={styles.nameText} textStyle={{coler: selectedColorScheme.systemMessageTextColor}}>{props.currentMessage.user.name}</Text>
+        {props.position === "left" && (
+          <Text
+            style={styles.nameText}
+            textStyle={{ coler: selectedColorScheme.systemMessageTextColor }}
+          >
+            {props.currentMessage.user.name}
+          </Text>
         )}
         <Message {...props} />
       </View>
@@ -125,40 +148,56 @@ const Chat = ({ route, navigation }) => {
         user,
       });
     } catch (error) {
-      console.error("Error adding message to Firestore:", error.code, error.message);
+      console.error(
+        "Error adding message to Firestore:",
+        error.code,
+        error.message
+      );
     }
   };
+
+  const renderInputToolbar = (props) => {
+    if (isConnected === false) {
+      return (
+        <InputToolbar
+          {...props}
+          text="No network connection"
+          textInputStyle={{ color: "grey" }}
+          primaryStyle={{ backgroundColor: "lightgrey" }}
+        />
+      );
+    }
+    return <InputToolbar {...props} />;
+  }
 
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: chatBackgroundColor }]}
     >
-      
-      {
-      Platform.OS === 'android' && <KeyboardAvoidingView behavior="padding" />
-   }
-        <GiftedChat
-          messages={messages}
-          onSend={(messages) => onSend(messages)}
-          user={{
-            _id: userID,
-            name: name,
-          }}
-          renderBubble={renderBubble}
-          renderSystemMessage={renderSystemMessage}
-          renderDay={renderDay}
-          renderMessage={renderMessage}
-          maxComposerHeight={100}
-          minComposerHeight={Platform.OS === "ios" ? 40 : 60}
-          textInputProps={{
-            importantForAccessibility: "yes",
-            accessible: true,
-            accessibilityRole: "text",
-            accessibilityHint: "Type your message here",
-            accessibilityLabel: null,
-            multiline: true,
-          }}
-        />
+      {Platform.OS === "android" && <KeyboardAvoidingView behavior="padding" />}
+      <GiftedChat
+        messages={messages}
+        onSend={(messages) => onSend(messages)}
+        user={{
+          _id: userID,
+          name: name,
+        }}
+        renderBubble={renderBubble}
+        renderSystemMessage={renderSystemMessage}
+        renderDay={renderDay}
+        renderMessage={renderMessage}
+        renderInputToolbar={renderInputToolbar}
+        maxComposerHeight={100}
+        minComposerHeight={Platform.OS === "ios" ? 40 : 60}
+        textInputProps={{
+          importantForAccessibility: "yes",
+          accessible: true,
+          accessibilityRole: "text",
+          accessibilityHint: "Type your message here",
+          accessibilityLabel: null,
+          multiline: true,
+        }}
+      />
     </SafeAreaView>
   );
 };
@@ -172,7 +211,7 @@ const styles = StyleSheet.create({
   },
   nameText: {
     fontSize: 12,
-    
+
     marginLeft: 10,
     marginBottom: 2,
   },
