@@ -3,19 +3,31 @@ import {
   Platform,
   KeyboardAvoidingView,
   SafeAreaView,
+  View,
+  Text,
 } from "react-native";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import {
   Bubble,
   GiftedChat,
   SystemMessage,
   Day,
+  Message,
 } from "react-native-gifted-chat";
 import colorMatrix from "../colorMatrix";
+import {
+  collection,
+  addDoc,
+  onSnapshot,
+  query,
+  orderBy,
+} from "firebase/firestore";
+import  DatabaseContext  from "../DatabaseContext";
 
 const Chat = ({ route, navigation }) => {
-  const { name, chatBackgroundColor } = route.params;
+  const { name, chatBackgroundColor, userID } = route.params;
   const [messages, setMessages] = useState([]);
+  const { db } = useContext(DatabaseContext);
 
   const selectedColorScheme = colorMatrix.find(
     (color) => color.backgroundColor === chatBackgroundColor
@@ -23,31 +35,25 @@ const Chat = ({ route, navigation }) => {
 
   useEffect(() => {
     navigation.setOptions({ title: name });
-    setMessages([
-      {
-        _id: 1,
-        text: "Hello developer",
-        createdAt: new Date(),
-        user: {
-          _id: 2,
-          name: "React Native",
-          avatar: "https://picsum.photos/id/40/140/140",
-        },
-      },
-      {
-        _id: 2,
-        text: "This is a system message",
-        createdAt: new Date(),
-        system: true,
-      },
-    ]);
-  }, []);
 
-  const onSend = (newMessages) => {
-    setMessages((previousMessages) =>
-      GiftedChat.append(previousMessages, newMessages)
-    );
-  };
+    const q = query(collection(db, "messages"), orderBy("createdAt", "desc"));
+    const unsubMessages = onSnapshot(q, (querySnapshot) => {
+      let newMessages = [];
+      querySnapshot.forEach((doc) => {
+        newMessages.push({
+          _id: doc.id,
+          text: doc.data().text,
+          createdAt: doc.data().createdAt.toDate(),
+          user: doc.data().user,
+        });
+      });
+      setMessages(newMessages);
+    });
+    // Clean upd
+    return () => {
+      if (unsubMessages) unsubMessages();
+    };
+  }, []);
 
   const renderBubble = (props) => {
     return (
@@ -98,32 +104,61 @@ const Chat = ({ route, navigation }) => {
     />
   );
 
+  const renderMessage = (props) => {
+    return (
+      <View>
+        {props.position === 'left' && (
+          <Text style={styles.nameText} textStyle={{coler: selectedColorScheme.systemMessageTextColor}}>{props.currentMessage.user.name}</Text>
+        )}
+        <Message {...props} />
+      </View>
+    );
+  };
+
+  const onSend = async (newMessages = []) => {
+    const { _id, createdAt, text, user } = newMessages[0];
+    try {
+      await addDoc(collection(db, "messages"), {
+        _id,
+        createdAt,
+        text,
+        user,
+      });
+    } catch (error) {
+      console.error("Error adding message to Firestore:", error.code, error.message);
+    }
+  };
+
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: chatBackgroundColor }]}
     >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={styles.keyboardAvoidingView}
-      ></KeyboardAvoidingView>
-      <GiftedChat
-        messages={messages}
-        onSend={(messages) => onSend(messages)}
-        user={{ _id: 1 }}
-        renderBubble={renderBubble}
-        renderSystemMessage={renderSystemMessage}
-        renderDay={renderDay}
-        maxComposerHeight={100}
-        minComposerHeight={Platform.OS === "ios" ? 40 : 60}
-        textInputProps={{
-          importantForAccessibility: "yes",
-          accessible: true,
-          accessibilityRole: "text",
-          accessibilityHint: "Type your message here",
-          accessibilityLabel:null,
-          multiline: true,
-        }}
-      />
+      
+      {
+      Platform.OS === 'android' && <KeyboardAvoidingView behavior="padding" />
+   }
+        <GiftedChat
+          messages={messages}
+          onSend={(messages) => onSend(messages)}
+          user={{
+            _id: userID,
+            name: name,
+          }}
+          renderBubble={renderBubble}
+          renderSystemMessage={renderSystemMessage}
+          renderDay={renderDay}
+          renderMessage={renderMessage}
+          maxComposerHeight={100}
+          minComposerHeight={Platform.OS === "ios" ? 40 : 60}
+          textInputProps={{
+            importantForAccessibility: "yes",
+            accessible: true,
+            accessibilityRole: "text",
+            accessibilityHint: "Type your message here",
+            accessibilityLabel: null,
+            multiline: true,
+          }}
+        />
     </SafeAreaView>
   );
 };
@@ -131,6 +166,15 @@ const Chat = ({ route, navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  keyboardAvoidingView: {
+    flex: 1,
+  },
+  nameText: {
+    fontSize: 12,
+    
+    marginLeft: 10,
+    marginBottom: 2,
   },
 });
 

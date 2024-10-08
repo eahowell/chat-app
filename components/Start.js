@@ -1,3 +1,5 @@
+
+import React, { useState, useContext } from "react";
 import {
   StyleSheet,
   Text,
@@ -10,11 +12,14 @@ import {
   Dimensions,
   KeyboardAvoidingView,
   ScrollView,
+  Alert,
 } from "react-native";
 import { SvgXml } from "react-native-svg";
-import { useState } from "react";
-import OutlinedText from "@kdn0325/react-native-outlined-text";
+// import OutlinedText from "@kdn0325/react-native-outlined-text";
 import colorMatrix from "../colorMatrix";
+
+import  DatabaseContext  from "../DatabaseContext";
+import { getAuth, signInAnonymously } from "firebase/auth";
 
 const image = require("../assets/background-image.png");
 
@@ -51,6 +56,29 @@ const Start = ({ navigation }) => {
   const [selectedBackgroundColor, setSelectedBackgroundColor] = useState(
     colorMatrix[0].backgroundColor
   );
+  const { auth } = useContext(DatabaseContext);
+
+  const signInUser = () => {
+    if (!auth) {
+      console.error("Auth object is undefined");
+      Alert.alert("Error", "Unable to sign in. Please try again later.");
+      return;
+    }
+
+    signInAnonymously(auth)
+      .then((userCredential) => {
+        navigation.navigate("Chat", {
+          userID: userCredential.user.uid,
+          name: name,
+          chatBackgroundColor: selectedBackgroundColor,
+        });
+        console.log(`User signed in. Name: ${name}, UserID: ${userCredential.user.uid}, Background Color: ${selectedBackgroundColor}`);
+      })
+      .catch((error) => {
+        console.error("Error signing in:", error.code, error.message);
+        Alert.alert("Unable to sign in, please try again later.");
+      });
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -185,12 +213,7 @@ const Start = ({ navigation }) => {
                 accessibilityRole="button"
                 accessibilityLabel="Start Chatting"
                 accessibilityHint="Enter the chat room with your chosen name and background color"
-                onPress={() =>
-                  navigation.navigate("Chat", {
-                    name: name,
-                    chatBackgroundColor: selectedBackgroundColor,
-                  })
-                }
+                onPress={signInUser}
               >
                 <Text style={styles.buttonStartChatText}>Start Chatting</Text>
               </Pressable>
