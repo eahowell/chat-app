@@ -15,7 +15,6 @@ import {
   Alert,
 } from "react-native";
 import { SvgXml } from "react-native-svg";
-// import OutlinedText from "@kdn0325/react-native-outlined-text";
 import colorMatrix from "../colorMatrix";
 
 import  DatabaseContext  from "../DatabaseContext";
@@ -99,17 +98,6 @@ const Start = ({ navigation }) => {
             <View style={styles.titleContainer}>
               {/* Add container for background color to help with contrast */}
               <View style={styles.titleBackground}>
-                {/* <OutlinedText
-                  text={"Chatly"}
-                  fontSize={45}
-                  fontWeight={"600"}
-                  fontColor={"#FFFFFF"}
-                  outlineColor="#090C08"
-                  shadowLine={5}
-                  accessible={true}
-                  accessibilityLabel="Chatly App Title"
-                  accessibilityRole="header"
-                /> */}
                 <Text
                   style={styles.title}
                   accessible={true}
@@ -166,7 +154,6 @@ const Start = ({ navigation }) => {
                   importantForAccessibility="yes"
                   accessible={true}
                   accessibilityRole="text"
-                  // accessibilityLabel="Choose your background color below"
                   accessibilityLabel={null}
                 >
                   Choose Background Color
@@ -274,8 +261,6 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     justifyContent: "space-between",
     alignItems: "center",
-    // height: "44%",
-    // height: height * 0.44,
     width: width * 0.88,
     backgroundColor: "#FFFFFF",
     paddingVertical: 20,
@@ -344,7 +329,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#757083",
     width: "88%",
     height: 50,
-    // marginVertical: 10,
     alignItems: "center",
     justifyContent: "center",
     borderRadius: 3,
