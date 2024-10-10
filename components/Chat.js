@@ -14,6 +14,7 @@ import {
   Day,
   Message,
   InputToolbar,
+  Composer,
 } from "react-native-gifted-chat";
 import colorMatrix from "../colorMatrix";
 import {
@@ -35,11 +36,28 @@ const Chat = ({ route, navigation, isConnected }) => {
     (color) => color.backgroundColor === chatBackgroundColor
   );
 
-  const loadCachedLists = async (listToCache) => {
+  const cacheMessages = async (messagesToCache) => {
     try {
-      await AsyncStorage.setItem("messages", JSON.stringify(listToCache));
-    } catch (error) { 
-      console.error("Error loading messages from cache:", error.code, error.message);
+      if (messagesToCache && messagesToCache.length > 0) {
+        await AsyncStorage.setItem("messages", JSON.stringify(messagesToCache));
+      }
+    } catch (error) {
+      console.error("Error caching messages:", error.code, error.message);
+    }
+  };
+
+  const loadCachedMessages = async () => {
+    try {
+      const cachedMessages = await AsyncStorage.getItem("messages");
+      if (cachedMessages !== null) {
+        setMessages(JSON.parse(cachedMessages));
+      }
+    } catch (error) {
+      console.error(
+        "Error loading messages from cache:",
+        error.code,
+        error.message
+      );
     }
   };
   let unsubMessages;
@@ -50,7 +68,7 @@ const Chat = ({ route, navigation, isConnected }) => {
       // Unregister current onSnapshot() listener to avoid registering multiple listeners when the connection is re-established
       if (unsubMessages) unsubMessages();
       unsubMessages = null;
-      
+
       const q = query(collection(db, "messages"), orderBy("createdAt", "desc"));
       unsubMessages = onSnapshot(q, async (querySnapshot) => {
         let newMessages = [];
@@ -62,11 +80,13 @@ const Chat = ({ route, navigation, isConnected }) => {
             user: doc.data().user,
           });
         });
-        loadCachedLists(newMessages);
+        cacheMessages(newMessages);
         setMessages(newMessages);
       });
-    } else loadCachedLists();
-    
+    } else {
+      loadCachedMessages();
+    }
+
     // Clean up the listener
     return () => {
       if (unsubMessages) unsubMessages();
@@ -157,18 +177,26 @@ const Chat = ({ route, navigation, isConnected }) => {
   };
 
   const renderInputToolbar = (props) => {
-    if (isConnected === false) {
+    if (isConnected === true) {
+      return <InputToolbar {...props} />;
+    } else {
       return (
-        <InputToolbar
-          {...props}
-          text="No network connection"
-          textInputStyle={{ color: "grey" }}
-          primaryStyle={{ backgroundColor: "lightgrey" }}
-        />
+        <View style={styles.offlineInputToolbar}>
+          <Text style={styles.offlineTextInput}>No network connection</Text>
+        </View>
       );
     }
-    return <InputToolbar {...props} />;
-  }
+  };
+
+  const renderComposer = (props) => {
+    return (
+      <Composer
+        {...props}
+        textInputStyle={isConnected === false ? styles.offlineTextInput : null}
+        disableComposer={isConnected === false ? false : true}
+      />
+    );
+  };
 
   return (
     <SafeAreaView
@@ -187,15 +215,19 @@ const Chat = ({ route, navigation, isConnected }) => {
         renderDay={renderDay}
         renderMessage={renderMessage}
         renderInputToolbar={renderInputToolbar}
+        renderComposer={renderComposer}
         maxComposerHeight={100}
         minComposerHeight={Platform.OS === "ios" ? 40 : 60}
         textInputProps={{
           importantForAccessibility: "yes",
           accessible: true,
           accessibilityRole: "text",
-          accessibilityHint: "Type your message here",
+          accessibilityHint: isConnected
+            ? "Type your message here"
+            : "No network connection",
           accessibilityLabel: null,
           multiline: true,
+          editable: isConnected,
         }}
       />
     </SafeAreaView>
@@ -214,6 +246,16 @@ const styles = StyleSheet.create({
 
     marginLeft: 10,
     marginBottom: 2,
+  },
+  offlineInputToolbar: {
+    backgroundColor: "lightgrey",
+    padding: 10,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  offlineTextInput: {
+    color: "black",
+    fontSize: 16,
   },
 });
 
