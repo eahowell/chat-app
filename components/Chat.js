@@ -176,6 +176,7 @@ const Chat = ({ route, navigation, isConnected }) => {
     }
   };
 
+  // Show an offline message in the input toolbar if there is no network connection
   const renderInputToolbar = (props) => {
     if (isConnected === true) {
       return <InputToolbar {...props} />;
@@ -188,6 +189,7 @@ const Chat = ({ route, navigation, isConnected }) => {
     }
   };
 
+  // Disable the composer if there is no network connection
   const renderComposer = (props) => {
     return (
       <Composer
