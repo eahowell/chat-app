@@ -1,17 +1,42 @@
 import React, { useEffect, useState, useContext, useCallback } from "react";
-import { StyleSheet, View, KeyboardAvoidingView, Platform, SafeAreaView, Text } from "react-native";
-import { GiftedChat, Bubble, InputToolbar, Composer, Send, SystemMessage, Day, Message } from "react-native-gifted-chat";
-import { collection, addDoc, onSnapshot, query, orderBy } from "firebase/firestore";
+import {
+  StyleSheet,
+  View,
+  KeyboardAvoidingView,
+  Platform,
+  SafeAreaView,
+  Text,
+  TouchableOpacity,
+} from "react-native";
+import {
+  GiftedChat,
+  Bubble,
+  InputToolbar,
+  Composer,
+  Send,
+  SystemMessage,
+  Day,
+  Message,
+} from "react-native-gifted-chat";
+import {
+  collection,
+  addDoc,
+  onSnapshot,
+  query,
+  orderBy,
+} from "firebase/firestore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import DatabaseContext from "../DatabaseContext";
 import CustomActions from "./CustomActions";
 import MapView from "react-native-maps";
 import colorMatrix from "../colorMatrix";
+import { Audio } from "expo-av";
 
 const Chat = ({ route, navigation, isConnected, storage }) => {
   const { name, chatBackgroundColor, userID } = route.params;
   const [messages, setMessages] = useState([]);
   const { db } = useContext(DatabaseContext);
+  let soundObject = null;
 
   const selectedColorScheme = colorMatrix.find(
     (color) => color.backgroundColor === chatBackgroundColor
@@ -36,30 +61,35 @@ const Chat = ({ route, navigation, isConnected, storage }) => {
     }
     return () => {
       if (unsubMessages) unsubMessages();
+      if (soundObject) soundObject.unloadAsync();
     };
   }, [isConnected, db, name]);
 
-  const onSend = useCallback(async (newMessages = []) => {
-    const message = newMessages[0];
-    try {
-      const messageToAdd = {
-        _id: message._id,
-        createdAt: message.createdAt,
-        user: {
-          _id: userID,
-          name: name  // Include the user's name here
-        },
-      };
+  const onSend = useCallback(
+    async (newMessages = []) => {
+      const message = newMessages[0];
+      try {
+        const messageToAdd = {
+          _id: message._id,
+          createdAt: message.createdAt,
+          user: {
+            _id: userID,
+            name: name, // Include the user's name here
+          },
+        };
 
-      if (message.text) messageToAdd.text = message.text;
-      if (message.image) messageToAdd.image = message.image;
-      if (message.location) messageToAdd.location = message.location;
+        if (message.text) messageToAdd.text = message.text;
+        if (message.image) messageToAdd.image = message.image;
+        if (message.location) messageToAdd.location = message.location;
+        if (message.audio) messageToAdd.audio = message.audio;
 
-      await addDoc(collection(db, "messages"), messageToAdd);
-    } catch (error) {
-      console.error("Error adding message to Firestore:", error);
-    }
-  }, [db, userID, name]); 
+        await addDoc(collection(db, "messages"), messageToAdd);
+      } catch (error) {
+        console.error("Error adding message to Firestore:", error);
+      }
+    },
+    [db, userID, name]
+  );
 
   const cacheMessages = async (messagesToCache) => {
     try {
@@ -117,6 +147,48 @@ const Chat = ({ route, navigation, isConnected, storage }) => {
     );
   };
 
+  const renderAudioBubble = (props) => {
+    return (
+      <View {...props}>
+        <TouchableOpacity
+          style={{ backgroundColor: "#FF0", borderRadius: 10, margin: 5 }}
+          onPress={async () => {
+            const { sound } = await Audio.Sound.createAsync({
+              uri: props.currentMessage.audio,
+            });
+            await sound.playAsync();
+          }}
+        >
+          <Text style={{ textAlign: "center", color: "black", padding: 5 }}>
+            Play Sound
+          </Text>
+        </TouchableOpacity>
+      </View>
+    );
+  };
+
+  const renderMessageAudio = (props) => {
+    return (
+      <View {...props}>
+        <TouchableOpacity
+          style={{ backgroundColor: "#FF0", borderRadius: 10, margin: 5 }}
+          onPress={async () => {
+            if (soundObject) soundObject.unloadAsync();
+            const { sound } = await Audio.Sound.createAsync({
+              uri: props.currentMessage.audio,
+            });
+            soundObject = sound;
+            await sound.playAsync();
+          }}
+        >
+          <Text style={{ textAlign: "center", color: "black", padding: 5 }}>
+            Play Sound
+          </Text>
+        </TouchableOpacity>
+      </View>
+    );
+  };
+
   const renderSystemMessage = (props) => (
     <SystemMessage
       {...props}
@@ -154,7 +226,6 @@ const Chat = ({ route, navigation, isConnected, storage }) => {
   const renderSend = (props) => {
     return <Send {...props} containerStyle={styles.sendContainer} />;
   };
-
 
   // Show an offline message in the input toolbar if there is no network connection
   const renderInputToolbar = (props) => {
@@ -233,6 +304,7 @@ const Chat = ({ route, navigation, isConnected, storage }) => {
         renderActions={renderCustomActions}
         renderCustomView={renderCustomView}
         renderSend={renderSend}
+        renderMessageAudio={renderAudioBubble}
         maxComposerHeight={100}
         minComposerHeight={Platform.OS === "ios" ? 40 : 60}
         textInputProps={{

@@ -16,6 +16,7 @@
     "@react-navigation/native": "^6.1.18",
     "@react-navigation/native-stack": "^6.11.0",
     "expo": "~51.0.28",
+    "expo-av": "^14.0.7",
     "expo-image-picker": "^15.0.7",
     "expo-location": "~17.0.1",
     "expo-media-library": "~16.0.5",
@@ -41,7 +42,8 @@
     "@babel/core": "^7.20.0",
     "@babel/plugin-transform-react-jsx": "^7.25.2",
     "@babel/plugin-transform-unicode-property-regex": "^7.24.7",
-    "@babel/preset-env": "^7.25.4"
+    "@babel/preset-env": "^7.25.4",
+    "@types/uuid": "^10.0.0"
   },
   "private": true
 }
