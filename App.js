@@ -9,6 +9,7 @@ import {
   disableNetwork,
   enableNetwork,
 } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
 import { initializeAuth, getReactNativePersistence } from "firebase/auth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNetInfo } from "@react-native-community/netinfo";
@@ -35,17 +36,12 @@ const app = initializeApp(firebaseConfig);
 
 // Initialize Cloud Firestore and get a reference to the service
 const db = getFirestore(app);
+const storage = getStorage(app);
 
-// Lazy initialization of Firebase Auth
-let auth;
-function getFirebaseAuth() {
-  if (!auth) {
-    auth = initializeAuth(app, {
-      persistence: getReactNativePersistence(AsyncStorage),
-    });
-  }
-  return auth;
-}
+// Initialize Firebase Auth only once
+const auth = initializeAuth(app, {
+  persistence: getReactNativePersistence(AsyncStorage),
+});
 
 
 export default function App() {
@@ -62,8 +58,6 @@ export default function App() {
     }
   }, [connectionStatus.isConnected]);
 
-    // Initialize auth here to ensure it's only done once per app lifecycle
-    const auth = getFirebaseAuth();
 
   return (
     <DatabaseContext.Provider value={{ db, auth }}>
@@ -71,7 +65,7 @@ export default function App() {
         <Stack.Navigator initialRouteName="Start">
           <Stack.Screen name="Start" component={Start} />
           <Stack.Screen name="Chat">
-            {(props) => <Chat {...props} isConnected={isConnected} />}
+            {(props) => <Chat {...props} isConnected={isConnected} storage={storage} />}
           </Stack.Screen>
         </Stack.Navigator>
       </NavigationContainer>

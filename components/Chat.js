@@ -1,38 +1,14 @@
-import {
-  StyleSheet,
-  Platform,
-  KeyboardAvoidingView,
-  SafeAreaView,
-  View,
-  Text,
-} from "react-native";
-import { useEffect, useState, useContext } from "react";
-import {
-  Bubble,
-  GiftedChat,
-  SystemMessage,
-  Day,
-  Message,
-  InputToolbar,
-  Composer,
-  Send,
-} from "react-native-gifted-chat";
-import colorMatrix from "../colorMatrix";
-import {
-  collection,
-  addDoc,
-  onSnapshot,
-  query,
-  orderBy,
-} from "firebase/firestore";
-
-import { v4 as uuidv4 } from "uuid";
+import React, { useEffect, useState, useContext, useCallback } from "react";
+import { StyleSheet, View, KeyboardAvoidingView, Platform, SafeAreaView, Text } from "react-native";
+import { GiftedChat, Bubble, InputToolbar, Composer, Send, SystemMessage, Day, Message } from "react-native-gifted-chat";
+import { collection, addDoc, onSnapshot, query, orderBy } from "firebase/firestore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import DatabaseContext from "../DatabaseContext";
 import CustomActions from "./CustomActions";
 import MapView from "react-native-maps";
+import colorMatrix from "../colorMatrix";
 
-const Chat = ({ route, navigation, isConnected }) => {
+const Chat = ({ route, navigation, isConnected, storage }) => {
   const { name, chatBackgroundColor, userID } = route.params;
   const [messages, setMessages] = useState([]);
   const { db } = useContext(DatabaseContext);
@@ -40,6 +16,50 @@ const Chat = ({ route, navigation, isConnected }) => {
   const selectedColorScheme = colorMatrix.find(
     (color) => color.backgroundColor === chatBackgroundColor
   );
+
+  useEffect(() => {
+    navigation.setOptions({ title: name });
+    let unsubMessages;
+    if (isConnected) {
+      const q = query(collection(db, "messages"), orderBy("createdAt", "desc"));
+      unsubMessages = onSnapshot(q, (querySnapshot) => {
+        const newMessages = querySnapshot.docs.map((doc) => ({
+          _id: doc.id,
+          ...doc.data(),
+          createdAt: doc.data().createdAt.toDate(),
+        }));
+        cacheMessages(newMessages);
+        setMessages(newMessages);
+      });
+    } else {
+      loadCachedMessages();
+    }
+    return () => {
+      if (unsubMessages) unsubMessages();
+    };
+  }, [isConnected, db, name]);
+
+  const onSend = useCallback(async (newMessages = []) => {
+    const message = newMessages[0];
+    try {
+      const messageToAdd = {
+        _id: message._id,
+        createdAt: message.createdAt,
+        user: {
+          _id: userID,
+          name: name  // Include the user's name here
+        },
+      };
+
+      if (message.text) messageToAdd.text = message.text;
+      if (message.image) messageToAdd.image = message.image;
+      if (message.location) messageToAdd.location = message.location;
+
+      await addDoc(collection(db, "messages"), messageToAdd);
+    } catch (error) {
+      console.error("Error adding message to Firestore:", error);
+    }
+  }, [db, userID, name]); 
 
   const cacheMessages = async (messagesToCache) => {
     try {
@@ -65,40 +85,6 @@ const Chat = ({ route, navigation, isConnected }) => {
       );
     }
   };
-  let unsubMessages;
-  useEffect(() => {
-    navigation.setOptions({ title: name });
-
-    if (isConnected === true) {
-      // Unregister current onSnapshot() listener to avoid registering multiple listeners when the connection is re-established
-      if (unsubMessages) unsubMessages();
-      unsubMessages = null;
-
-      const q = query(collection(db, "messages"), orderBy("createdAt", "desc"));
-      unsubMessages = onSnapshot(q, async (querySnapshot) => {
-        let newMessages = [];
-        querySnapshot.forEach((doc) => {
-          newMessages.push({
-            _id: doc.id,
-            text: doc.data().text,
-            createdAt: doc.data().createdAt.toDate(),
-            user: doc.data().user,
-            image: doc.data().image,
-            location: doc.data().location,
-          });
-        });
-        cacheMessages(newMessages);
-        setMessages(newMessages);
-      });
-    } else {
-      loadCachedMessages();
-    }
-
-    // Clean up the listener
-    return () => {
-      if (unsubMessages) unsubMessages();
-    };
-  }, [isConnected]);
 
   const renderBubble = (props) => {
     return (
@@ -168,25 +154,7 @@ const Chat = ({ route, navigation, isConnected }) => {
   const renderSend = (props) => {
     return <Send {...props} containerStyle={styles.sendContainer} />;
   };
-  const onSend = async (newMessages = []) => {
-    const message = newMessages[0];
-    try {
-      const messageToAdd = {
-        _id: message._id || uuidv4(),
-        createdAt: message.createdAt || new Date(),
-        user: message.user || { _id: userID, name: name },
-      };
 
-      if (message.text) messageToAdd.text = message.text;
-      if (message.image) messageToAdd.image = message.image;
-      if (message.location) {
-        messageToAdd.location = message.location;
-      }
-      await addDoc(collection(db, "messages"), messageToAdd);
-    } catch (error) {
-      console.error("Error adding message to Firestore:", error);
-    }
-  };
 
   // Show an offline message in the input toolbar if there is no network connection
   const renderInputToolbar = (props) => {
@@ -216,9 +184,12 @@ const Chat = ({ route, navigation, isConnected }) => {
     return (
       <CustomActions
         {...props}
+        storage={storage}
+        userID={userID}
+        name={name}
+        onSend={onSend}
         wrapperStyle={styles.customActionsWrapper}
         iconTextStyle={styles.customActionsIconText}
-        onSend={onSend}
       />
     );
   };

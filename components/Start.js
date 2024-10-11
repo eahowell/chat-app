@@ -57,13 +57,28 @@ const Start = ({ navigation }) => {
   );
   const { auth } = useContext(DatabaseContext);
 
-  const signInUser = () => {
-    if (!auth) {
-      console.error("Auth object is undefined");
-      Alert.alert("Error", "Unable to sign in. Please try again later.");
-      return;
-    }
+  // const signInUser = () => {
+  //   if (!auth) {
+  //     console.error("Auth object is undefined");
+  //     Alert.alert("Error", "Unable to sign in. Please try again later.");
+  //     return;
+  //   }
 
+  //   signInAnonymously(auth)
+  //     .then((userCredential) => {
+  //       navigation.navigate("Chat", {
+  //         userID: userCredential.user.uid,
+  //         name: name,
+  //         chatBackgroundColor: selectedBackgroundColor,
+  //       });
+  //       console.log(`User signed in. Name: ${name}, UserID: ${userCredential.user.uid}, Background Color: ${selectedBackgroundColor}`);
+  //     })
+  //     .catch((error) => {
+  //       console.error("Error signing in:", error.code, error.message);
+  //       Alert.alert("Unable to sign in, please try again later.");
+  //     });
+  // };
+  const signInUser = () => {
     signInAnonymously(auth)
       .then((userCredential) => {
         navigation.navigate("Chat", {
