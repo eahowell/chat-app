@@ -15,6 +15,7 @@ import {
   Message,
   InputToolbar,
   Composer,
+  Send,
 } from "react-native-gifted-chat";
 import colorMatrix from "../colorMatrix";
 import {
@@ -24,8 +25,12 @@ import {
   query,
   orderBy,
 } from "firebase/firestore";
+
+import { v4 as uuidv4 } from "uuid";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import DatabaseContext from "../DatabaseContext";
+import CustomActions from "./CustomActions";
+import MapView from "react-native-maps";
 
 const Chat = ({ route, navigation, isConnected }) => {
   const { name, chatBackgroundColor, userID } = route.params;
@@ -78,6 +83,8 @@ const Chat = ({ route, navigation, isConnected }) => {
             text: doc.data().text,
             createdAt: doc.data().createdAt.toDate(),
             user: doc.data().user,
+            image: doc.data().image,
+            location: doc.data().location,
           });
         });
         cacheMessages(newMessages);
@@ -158,21 +165,26 @@ const Chat = ({ route, navigation, isConnected }) => {
     );
   };
 
+  const renderSend = (props) => {
+    return <Send {...props} containerStyle={styles.sendContainer} />;
+  };
   const onSend = async (newMessages = []) => {
-    const { _id, createdAt, text, user } = newMessages[0];
+    const message = newMessages[0];
     try {
-      await addDoc(collection(db, "messages"), {
-        _id,
-        createdAt,
-        text,
-        user,
-      });
+      const messageToAdd = {
+        _id: message._id || uuidv4(),
+        createdAt: message.createdAt || new Date(),
+        user: message.user || { _id: userID, name: name },
+      };
+
+      if (message.text) messageToAdd.text = message.text;
+      if (message.image) messageToAdd.image = message.image;
+      if (message.location) {
+        messageToAdd.location = message.location;
+      }
+      await addDoc(collection(db, "messages"), messageToAdd);
     } catch (error) {
-      console.error(
-        "Error adding message to Firestore:",
-        error.code,
-        error.message
-      );
+      console.error("Error adding message to Firestore:", error);
     }
   };
 
@@ -200,6 +212,35 @@ const Chat = ({ route, navigation, isConnected }) => {
     );
   };
 
+  const renderCustomActions = (props) => {
+    return (
+      <CustomActions
+        {...props}
+        wrapperStyle={styles.customActionsWrapper}
+        iconTextStyle={styles.customActionsIconText}
+        onSend={onSend}
+      />
+    );
+  };
+
+  const renderCustomView = (props) => {
+    const { currentMessage } = props;
+    if (currentMessage.location) {
+      return (
+        <MapView
+          style={{ width: 150, height: 100, borderRadius: 13, margin: 3 }}
+          region={{
+            latitude: currentMessage.location.latitude,
+            longitude: currentMessage.location.longitude,
+            latitudeDelta: 0.0922,
+            longitudeDelta: 0.0421,
+          }}
+        />
+      );
+    }
+    return null;
+  };
+
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: chatBackgroundColor }]}
@@ -218,6 +259,9 @@ const Chat = ({ route, navigation, isConnected }) => {
         renderMessage={renderMessage}
         renderInputToolbar={renderInputToolbar}
         renderComposer={renderComposer}
+        renderActions={renderCustomActions}
+        renderCustomView={renderCustomView}
+        renderSend={renderSend}
         maxComposerHeight={100}
         minComposerHeight={Platform.OS === "ios" ? 40 : 60}
         textInputProps={{
@@ -245,7 +289,6 @@ const styles = StyleSheet.create({
   },
   nameText: {
     fontSize: 12,
-
     marginLeft: 10,
     marginBottom: 2,
   },
@@ -258,6 +301,21 @@ const styles = StyleSheet.create({
   offlineTextInput: {
     color: "black",
     fontSize: 16,
+  },
+  customActionsWrapper: {
+    alignSelf: "center",
+    marginLeft: 0,
+    marginRight: 4,
+    marginBottom: 0,
+  },
+  customActionsIconText: {
+    fontSize: 20,
+  },
+  sendContainer: {
+    justifyContent: "center",
+    alignItems: "center",
+    alignSelf: "center",
+    marginRight: 4,
   },
 });
 
