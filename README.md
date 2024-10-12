@@ -24,23 +24,23 @@ To build a chat app for mobile devices using React Native. The app will provide 
       - [Feature 3: Additional Communication Features](#feature-3-additional-communication-features)
       - [Feature 4: Data Storage](#feature-4-data-storage)
   - [Technical Requirements](#technical-requirements)
-  - [Technologies Used](#technologies-used)
-    - [Dependencies](#dependencies)
-    - [Dev Dependencies](#dev-dependencies)
   - [Getting Started](#getting-started)
     - [Prerequisites](#prerequisites)
+    - [Setting up the Development Environment](#setting-up-the-development-environment)
+    - [Database Configuration](#database-configuration)
     - [Installation](#installation)
   - [Running the Application](#running-the-application)
-  - [Running Tests](#running-tests)
+  - [Dependencies](#dependencies)
+  - [Dev Dependencies](#dev-dependencies)
   - [Contributing](#contributing)
   - [License](#license)
 
 ## Features
 
-- A page where users can enter their name and choose a background color for the chat screen before joining the chat
-- A page displaying the conversation, as well as an input field and submit button.
-- The chat must provide users with two additional communication features: sending images and location data
-- Data gets stored online and offline
+- User setup page for entering name and choosing chat background color
+- Chat interface with conversation display, input field, and submit button
+- Additional communication features: sending images and location data
+- Online and offline data storage
 
 
 ### User Stories
@@ -161,88 +161,142 @@ Feature: Data Storage
 ```
 
 ## Technical Requirements
-- The app must be written in React Native.
-- The app must be developed using Expo.
-- The app must be styled according to the given screen design.
-- Chat conversations must be stored in Google Firestore Database.
-- The app must authenticate users anonymously via Google Firebase authentication.
-- Chat conversations must be stored locally.
-- The app must let users pick and send images from the phone’s image library.
-- The app must let users take pictures with the device’s camera app, and send them.
-- The app must store images in Firebase Cloud Storage.
-- The app must be able to read the user’s location data.
-- Location data must be sent via the chat in a map view.
-- The chat interface and functionality must be created using the Gifted Chat library.
-- The app’s codebase must contain comments.
-
-## Technologies Used
-
-- React Native
-- Expo
-- Google Firestore Database
-- Firebase Cloud Storage
-
-### Dependencies
-      
-### Dev Dependencies	
+- Built with React Native and Expo
+- Uses Google Firestore Database for chat storage
+- Firebase authentication for anonymous user authentication
+- Local storage for offline message access
+- Image picking and camera functionality
+- Firebase Cloud Storage for image storage
+- Location data sharing with map view
+- Gifted Chat library for chat interface and functionality
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js (16.19.0) **Must downgrade to this version!**
-  - Before installing Expo, ensure you have a suitable version of Node installed. At the time of writing, Expo only supports Node 16.. at max, so if you have a higher version than 16.., make sure to downgrade to “16.19.0” by running the following commands:
-```
-  nvm install 16.19.0
-  nvm use 16.19.0
-```
-- Expo and Expo CLI
- ```
-  npm install -g expo-cli
-```
-- Expo Go App
-- Android Emulator
+- Node.js (version 16.19.0)
+- npm (comes with Node.js)
+- Expo CLI
+- Expo Go app (for mobile testing)
+- Android Studio (for Android emulator)
+- Xcode (for iOS simulator, Mac only)
+
+### Setting up the Development Environment
+
+1. Install Node.js 16.19.0:
+   ```
+   nvm install 16.19.0
+   nvm use 16.19.0
+   ```
+
+2. Install Expo CLI:
+   ```
+   npm install -g expo-cli
+   ```
+
+3. Set up Android Studio (for Android development):
+   - Download and install Android Studio
+   - Set up an Android Virtual Device (AVD) for emulation
+
+4. Set up Xcode (for iOS development, Mac only):
+   - Download and install Xcode from the App Store
+
+### Database Configuration
+
+1. Create a Firebase project:
+   - Go to the Firebase Console (https://console.firebase.google.com/)
+   - Create a new project
+   - Set up Firestore Database
+   - Set up Firebase Authentication (anonymous)
+   - Set up Firebase Storage
+
+2. Get your Firebase configuration:
+   - In your Firebase project settings, find your web app's Firebase configuration
+   - Copy the configuration object
+
+3. Create a `firebaseConfig.js` file in the project root:
+   ```javascript
+   // firebaseConfig.js
+   export const firebaseConfig = {
+     apiKey: "YOUR_API_KEY",
+     authDomain: "YOUR_AUTH_DOMAIN",
+     projectId: "YOUR_PROJECT_ID",
+     storageBucket: "YOUR_STORAGE_BUCKET",
+     messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+     appId: "YOUR_APP_ID"
+   };
+   ```
 
 ### Installation
 
 1. Clone the repository:
-
    ```
-   git clone https://github.com/eahowell/meet.git
-   cd meet
+   git clone https://github.com/your-username/chatly.git
+   cd chatly
    ```
 
 2. Install dependencies:
-
    ```
    npm install
    ```
 
-
 ## Running the Application
 
-To start the development server:
+1. Start the development server:
+   ```
+   npm start
+   ```
 
+2. Use the Expo Go app on your mobile device to scan the QR code, or run on an emulator:
+   - For Android Emulator: Press 'a' in the terminal
+   - For iOS Simulator: Press 'i' in the terminal (Mac only)
+
+## Dependencies
+
+```json
+{
+  "@expo/metro-runtime": "~3.2.3",
+  "@expo/react-native-action-sheet": "^4.1.0",
+  "@react-native-async-storage/async-storage": "^1.24.0",
+  "@react-native-community/netinfo": "^11.4.1",
+  "@react-navigation/native": "^6.1.18",
+  "@react-navigation/native-stack": "^6.11.0",
+  "expo": "~51.0.28",
+  "expo-av": "^14.0.7",
+  "expo-image-picker": "^15.0.7",
+  "expo-location": "~17.0.1",
+  "expo-media-library": "~16.0.5",
+  "expo-status-bar": "~1.12.1",
+  "firebase": "^10.3.1",
+  "react": "18.2.0",
+  "react-dom": "18.2.0",
+  "react-native": "0.74.5",
+  "react-native-get-random-values": "^1.11.0",
+  "react-native-gifted-chat": "^2.6.3",
+  "react-native-iphone-x-helper": "^1.3.1",
+  "react-native-lightbox-v2": "^0.9.2",
+  "react-native-maps": "1.14.0",
+  "react-native-parsed-text": "^0.0.22",
+  "react-native-reanimated": "~3.10.1",
+  "react-native-safe-area-context": "^4.10.5",
+  "react-native-screens": "3.31.1",
+  "react-native-svg": "^15.2.0",
+  "react-native-web": "~0.19.10",
+  "uuid": "^10.0.0"
+}
 ```
-npm start
+
+## Dev Dependencies
+
+```json
+{
+  "@babel/core": "^7.20.0",
+  "@babel/plugin-transform-react-jsx": "^7.25.2",
+  "@babel/plugin-transform-unicode-property-regex": "^7.24.7",
+  "@babel/preset-env": "^7.25.4",
+  "@types/uuid": "^10.0.0"
+}
 ```
-
-Visit `http://localhost:3000` in your browser to view the application.
-
-## Running Tests
-
-This project uses Jest and React Testing Library for unit and integration tests. To run the tests:
-
-```
-npm test
-```
-
-To run all tests in watch mode and get testing coverage:
-
-```
-npm test -- --coverage --watchAll
-```
-
 
 ## Contributing
 
@@ -252,6 +306,6 @@ npm test -- --coverage --watchAll
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-
 ## License
-MIT
+
+This project is licensed under the MIT License.
