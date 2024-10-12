@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { TouchableOpacity, View, Text, StyleSheet, Alert } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { useActionSheet } from "@expo/react-native-action-sheet";
@@ -217,7 +217,7 @@ const CustomActions = ({
       onPress={onActionPress}
       accessible={true}
       accessibilityLabel="Action options"
-      accessibilityHint="Choose to send an image, take a picture, or share your location"
+      accessibilityHint="Choose to send an image, take a picture, send a voice recording, or share your location"
       accessibilityRole="button"
     >
       <View style={[styles.wrapper, wrapperStyle]}>

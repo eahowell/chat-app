@@ -74,7 +74,7 @@ const Chat = ({ route, navigation, isConnected, storage }) => {
           createdAt: message.createdAt,
           user: {
             _id: userID,
-            name: name, // Include the user's name here
+            name: name,
           },
         };
 
