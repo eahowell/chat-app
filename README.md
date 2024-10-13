@@ -6,6 +6,8 @@
 ![GitHub forks](https://img.shields.io/github/forks/eahowell/chat-app)
 ![GitHub watchers](https://img.shields.io/github/watchers/eahowell/chat-app)
 
+![Chatly Logo](./assets/ChatlyLogo.png)
+
 The app where you can get chatty with your friends!
 
 Chatly is a mobile chat application built with React Native. It provides users with a chat interface and options to share images and their location.
