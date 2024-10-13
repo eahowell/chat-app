@@ -1,10 +1,14 @@
 <!-- ![CliqueUPLogo](public/LightLogo.webp) -->
 
 # Welcome to Chatly!
+![GitHub issues](https://img.shields.io/github/issues/eahowell/chat-app?color=yellow)
+![GitHub Repo stars](https://img.shields.io/github/stars/eahowell/chat-app)
+![GitHub forks](https://img.shields.io/github/forks/eahowell/chat-app)
+![GitHub watchers](https://img.shields.io/github/watchers/eahowell/chat-app)
 
 The app where you can get chatty with your friends!
 
-To build a chat app for mobile devices using React Native. The app will provide users with a chat interface and options to share images and their location.
+Chatly is a mobile chat application built with React Native. It provides users with a chat interface and options to share images and their location.
 
 ## Table of Contents
 
@@ -24,14 +28,17 @@ To build a chat app for mobile devices using React Native. The app will provide 
       - [Feature 3: Additional Communication Features](#feature-3-additional-communication-features)
       - [Feature 4: Data Storage](#feature-4-data-storage)
   - [Technical Requirements](#technical-requirements)
+    - [Design Specifications](#design-specifications)
   - [Getting Started](#getting-started)
     - [Prerequisites](#prerequisites)
     - [Setting up the Development Environment](#setting-up-the-development-environment)
     - [Database Configuration](#database-configuration)
     - [Installation](#installation)
   - [Running the Application](#running-the-application)
+  - [Troubleshooting](#troubleshooting)
   - [Dependencies](#dependencies)
   - [Dev Dependencies](#dev-dependencies)
+  - [Project Structure](#project-structure)
   - [Contributing](#contributing)
   - [License](#license)
 
@@ -71,6 +78,8 @@ Feature: Send Messages
     Then my message should appear in the chat
     And other users in the chat should see my message
 ```
+![Chatly - Offline Mode](./assets/Chatly-OfflineMode.gif)
+
 #### User Story 3: Send Images
 As a user
   I want to send images to my friends
@@ -122,6 +131,8 @@ Feature: Screen Reader Compatibility
     And I should be able to compose and send messages using the screen reader
 ```
 
+![Chatly - Action Demonstration](./assets/Chatly-Actions.gif)
+
 ### Key Features
 #### Feature 1: User Setup Page
 ```gherkin
@@ -169,6 +180,16 @@ Feature: Data Storage
 - Firebase Cloud Storage for image storage
 - Location data sharing with map view
 - Gifted Chat library for chat interface and functionality
+
+### Design Specifications
+- Vertical and horizontal spacing: evenly distributed
+- App title: font size 45, font weight 600, font color #FFFFFF
+- “Your name”: font size 16, font weight 300, font color #757083, 50% opacity
+- “Choose background color”: font size 16, font weight 300, font color #757083, 100% opacity
+- Color options HEX codes: #090C08; #474056; #8A95A5; #B9C6AE
+- Start chatting button: font size 16, font weight 600, font color #FFFFFF, button color #757083
+
+![Start Screen Home Design](./assets/DesignSpecs.png)
 
 ## Getting Started
 
@@ -251,6 +272,27 @@ Feature: Data Storage
    - For Android Emulator: Press 'a' in the terminal
    - For iOS Simulator: Press 'i' in the terminal (Mac only)
 
+## Troubleshooting
+
+Common issues and their solutions:
+
+1. **Issue**: Expo server connection failure
+   **Solution**: Ensure your mobile device and development machine are on the same Wi-Fi network.
+
+2. **Issue**: Android emulator not detecting Expo server
+   **Solution**: Try running `adb reverse tcp:8081 tcp:8081` in your terminal.
+
+3. **Issue**: Expo Go stops unexpectedly (Offline Error)
+   **Solution**: The emulator may default to having Wi-Fi off when launched. Always turn on Wi-Fi immediately after launching the app. Without Wi-Fi, you won't be able to run your apps through Expo Go.
+
+4. **Issue**: Expo Camera Error (Can't connect to camera)
+   **Solution**: Close the emulator and perform a cold boot.
+
+5. **Issue**: Android Emulator crashing or unstable
+   **Solution**: If the app starts loading but crashes, try pressing 'a' in the Expo Metro Bundler console until the app fully launches.
+   **Solution**: If the issue persists, close the emulator and perform a cold boot.
+
+
 ## Dependencies
 
 ```json
@@ -298,6 +340,28 @@ Feature: Data Storage
 }
 ```
 
+## Project Structure
+
+```
+chatly/
+│
+├── assets/
+│   └── [image files]
+├── components/
+│   ├── Chat.js
+│   ├── CustomActions.js
+│   └── Start.js
+├── config/
+│   └── firebaseConfig.js
+├── contexts/
+│   └── DatabaseContext.js
+├── utils/
+│   └── colorMatrix.js
+├── App.js
+├── package.json
+└── README.md
+```
+
 ## Contributing
 
 1. Fork the repository
@@ -308,4 +372,4 @@ Feature: Data Storage
 
 ## License
 
-This project is licensed under the MIT License.
+This project is licensed under the [MIT License](./LICENSE).
